@@ -10,4 +10,4 @@ COPY . .
 
 ENV PYTHONUNBUFFERED=1
 
-CMD exec gunicorn --bind :$PORT run:app
+CMD exec gunicorn --bind :$PORT app:app
