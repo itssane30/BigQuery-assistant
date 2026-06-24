@@ -10,6 +10,11 @@ const sendBtn = document.getElementById("sendBtn");
 const refreshHealthBtn = document.getElementById("refreshHealthBtn");
 const healthText = document.getElementById("health-text");
 
+// Loader
+const startupLoader = document.getElementById("startup-loader");
+const chatContent = document.getElementById("chat-content");
+const loaderText = document.getElementById("loader-text");
+
 const dots = {
   vertex: document.getElementById("dot-vertex"),
   bigquery: document.getElementById("dot-bigquery"),
@@ -26,9 +31,32 @@ function escapeHtml(str) {
 
 // Lightweight, presentation-only SQL keyword highlighter - no library needed.
 const SQL_KEYWORDS = [
-  "SELECT", "FROM", "WHERE", "GROUP BY", "ORDER BY", "LEFT JOIN", "INNER JOIN",
-  "JOIN", "ON", "AS", "LIMIT", "DESC", "ASC", "AND", "OR", "NOT", "IN",
-  "COUNT", "SUM", "AVG", "MAX", "MIN", "WITH", "HAVING", "DISTINCT", "BETWEEN",
+  "SELECT",
+  "FROM",
+  "WHERE",
+  "GROUP BY",
+  "ORDER BY",
+  "LEFT JOIN",
+  "INNER JOIN",
+  "JOIN",
+  "ON",
+  "AS",
+  "LIMIT",
+  "DESC",
+  "ASC",
+  "AND",
+  "OR",
+  "NOT",
+  "IN",
+  "COUNT",
+  "SUM",
+  "AVG",
+  "MAX",
+  "MIN",
+  "WITH",
+  "HAVING",
+  "DISTINCT",
+  "BETWEEN",
 ];
 
 function highlightSql(sql) {
@@ -36,7 +64,10 @@ function highlightSql(sql) {
   for (const kw of SQL_KEYWORDS) {
     const pattern = kw.replace(" ", "\\s+");
     const re = new RegExp(`\\b${pattern}\\b`, "gi");
-    escaped = escaped.replace(re, (match) => `<span class="sql-kw">${match}</span>`);
+    escaped = escaped.replace(
+      re,
+      (match) => `<span class="sql-kw">${match}</span>`,
+    );
   }
   return escaped;
 }
@@ -119,7 +150,9 @@ function renderAnswer(div, data, seconds) {
     toggle.addEventListener("click", () => {
       const isHidden = panel.hasAttribute("hidden");
       panel.toggleAttribute("hidden");
-      toggle.textContent = isHidden ? "Hide query trace ▴" : "View query trace ▾";
+      toggle.textContent = isHidden
+        ? "Hide query trace ▴"
+        : "View query trace ▾";
       if (isHidden) scrollToBottom();
     });
   }
@@ -154,7 +187,10 @@ async function sendMessage(prefillText) {
       body: JSON.stringify({ message: text }),
     });
   } catch (err) {
-    renderError(loadingDiv, "Couldn't reach the assistant. Check that the backend is running.");
+    renderError(
+      loadingDiv,
+      "Couldn't reach the assistant. Check that the backend is running.",
+    );
     return;
   }
 
@@ -163,7 +199,10 @@ async function sendMessage(prefillText) {
   try {
     data = await res.json();
   } catch (err) {
-    renderError(loadingDiv, "The server sent back something that wasn't valid JSON.");
+    renderError(
+      loadingDiv,
+      "The server sent back something that wasn't valid JSON.",
+    );
     return;
   }
 
@@ -227,7 +266,18 @@ async function checkHealth() {
       setDot(dots[key], ok);
     }
 
-    healthText.textContent = allGood ? "All systems connected" : "Some services unavailable";
+    if (allGood) {
+      healthText.textContent = "All systems connected";
+      loaderText.textContent = "System ready";
+
+      setTimeout(() => {
+        startupLoader.style.display = "none";
+        chatContent.style.display = "flex";
+      }, 1000);
+    } else {
+      healthText.textContent = "Some services unavailable";
+      loaderText.textContent = "Connection failed";
+    }
   } catch (err) {
     Object.values(dots).forEach((dot) => setDot(dot, false));
     healthText.textContent = "Backend unreachable";
